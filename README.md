@@ -1,4 +1,4 @@
-# 🛡️ SOC Automation Lab — End-to-End Threat Detection & Response
+# 🛡️ SOC Automation Lab - End-to-End Threat Detection & Response
 
 ## 📋 Table of Contents
 - [Overview](#overview)
@@ -22,12 +22,12 @@
 
 ## Overview
 
-A fully automated Security Operations Centre (SOC) lab built on AWS from scratch. This project implements two complete security automation workflows that detect threats, enrich indicators of compromise, create cases, notify analysts, and execute active response — all without manual intervention.
+A fully automated Security Operations Centre (SOC) lab built on AWS from scratch. This project implements two complete security automation workflows that detect threats, enrich indicators of compromise, create cases, notify analysts, and execute active response - all without manual intervention.
 
-**Why I built this:** As a cybersecurity master's graduate, I wanted to go beyond theoretical knowledge and build something that mirrors what real SOC teams operate daily. Every component was deployed, configured, broken, debugged, and rebuilt by hand — no pre-built templates, no Docker shortcuts.
+**Why I built this:** As a cybersecurity master's graduate, I wanted to go beyond theoretical knowledge and build something that mirrors what real SOC teams operate daily. Every component was deployed, configured, broken, debugged, and rebuilt by hand - no pre-built templates, no Docker shortcuts.
 
 **What makes this different from tutorial projects:**
-- Multiple EC2 instances communicating across a real AWS VPC — not a single-machine Docker setup
+- Multiple EC2 instances communicating across a real AWS VPC - not a single-machine Docker setup
 - Two distinct automation workflows handling different threat types
 - Real troubleshooting of production issues (Cassandra memory crashes, Elasticsearch JVM failures, API authentication chains, active response formatting)
 - Custom detection rules written from scratch, not copied from default rulesets
@@ -84,7 +84,7 @@ A fully automated Security Operations Centre (SOC) lab built on AWS from scratch
 
 ---
 
-## Workflow 1 — Mimikatz Detection & Alert Pipeline
+## Workflow 1 - Mimikatz Detection & Alert Pipeline
 
 **Purpose:** Detect credential dumping tools on Windows endpoints and automatically create enriched security cases.
 
@@ -152,7 +152,7 @@ Windows VM                    Wazuh Manager                 Shuffle SOAR
 
 ---
 
-## Workflow 2 — Brute Force Detection & IP Blocking
+## Workflow 2 - Brute Force Detection & IP Blocking
 
 **Purpose:** Detect SSH brute force attacks and give the SOC analyst a one-click option to block the attacker's IP.
 
@@ -242,7 +242,7 @@ sudo iptables -L INPUT -n
 ### Networking
 
 - All EC2 instances communicate via AWS VPC private IPs
-- Elastic IP assigned to Wazuh Manager — prevents agent disconnection when instances restart
+- Elastic IP assigned to Wazuh Manager - prevents agent disconnection when instances restart
 - Security groups configured for inter-instance communication on required ports
 - Windows VM connects via NAT through VirtualBox to Wazuh Manager's public IP
 
@@ -262,7 +262,7 @@ sudo iptables -L INPUT -n
 
 ## Component Deep Dive
 
-### Wazuh 4.7.5 — SIEM & IDS
+### Wazuh 4.7.5 - SIEM & IDS
 
 Installed using the all-in-one deployment script with the `-i` flag required for Ubuntu 24.04:
 ```bash
@@ -272,15 +272,15 @@ sudo bash wazuh-install.sh -a -i
 
 Key configurations in `/var/ossec/etc/ossec.conf`:
 - Archive logging enabled (`logall` and `logall_json` set to yes) for full event retention
-- Two Shuffle webhook integrations — one per workflow
+- Two Shuffle webhook integrations - one per workflow
 - Active response configured with `firewall-drop` command and 180-second timeout
 - Sysmon event channel collection from Windows agent
 
 ### Sysmon — Endpoint Telemetry
 
 Installed on Windows 10 VM to capture detailed process-level events:
-- **Event ID 1** — Process Creation (captures image path, hashes, command line, parent process)
-- **Event ID 10** — Process Access (captures source/target process, granted access rights)
+- **Event ID 1** - Process Creation (captures image path, hashes, command line, parent process)
+- **Event ID 10** - Process Access (captures source/target process, granted access rights)
 
 Windows agent `ossec.conf` includes:
 ```xml
@@ -290,7 +290,7 @@ Windows agent `ossec.conf` includes:
 </localfile>
 ```
 
-### TheHive 5.7 — Case Management
+### TheHive 5.7 - Case Management
 
 Self-hosted on a dedicated EC2 instance, connected to:
 - **Cassandra** on 172.31.2.3:9042 — stores case data
@@ -298,7 +298,7 @@ Self-hosted on a dedicated EC2 instance, connected to:
 
 Configuration at `/etc/thehive/application.conf` points to the database server's private IP.
 
-### Shuffle — SOAR
+### Shuffle - SOAR
 
 Cloud-hosted at shuffler.io. Two separate workflows with independent webhook URLs. Each workflow receives alerts only for its specific rule ID, keeping the logic clean and separated.
 
@@ -337,8 +337,8 @@ Located at `/var/ossec/etc/rules/local_rules.xml`:
 
 ### Why two rules?
 
-- **Rule 100003 (Event ID 1)** catches when Mimikatz is executed directly — this event includes file hashes, which are essential for the VirusTotal enrichment workflow
-- **Rule 100002 (Event ID 10)** catches when another process accesses Mimikatz — useful for detecting process injection techniques but does not include file hashes
+- **Rule 100003 (Event ID 1)** catches when Mimikatz is executed directly - this event includes file hashes, which are essential for the VirusTotal enrichment workflow
+- **Rule 100002 (Event ID 10)** catches when another process accesses Mimikatz - useful for detecting process injection techniques but does not include file hashes
 
 ---
 
@@ -366,7 +366,7 @@ Located at `/var/ossec/etc/rules/local_rules.xml`:
 ### 2. Elasticsearch JVM Crashes on Startup
 **Problem:** Elasticsearch would crash immediately after starting with JVM garbage collection errors.
 
-**Root cause:** Three separate issues — the `/var/log/elasticsearch/` directory didn't exist, deprecated GC logging options in `jvm.options` were causing errors on the installed JVM version, and no heap size was configured (defaulting to an unsustainable amount on a small instance).
+**Root cause:** Three separate issues - the `/var/log/elasticsearch/` directory didn't exist, deprecated GC logging options in `jvm.options` were causing errors on the installed JVM version, and no heap size was configured (defaulting to an unsustainable amount on a small instance).
 
 **Solution:** Created the missing log directory, commented out all `8:-XX:+PrintGC*` lines in `jvm.options`, and created `/etc/elasticsearch/jvm.options.d/heap.options` with `-Xms2g` and `-Xmx2g`.
 
@@ -377,25 +377,25 @@ Located at `/var/ossec/etc/rules/local_rules.xml`:
 
 **Solution:** Assigned an Elastic IP to the Wazuh Manager instance, giving it a permanent public IP. Updated the Windows agent `ossec.conf` with the Elastic IP. Never had this problem again.
 
-### 4. Wazuh Manager Won't Start — "Invalid element 'rule_id'"
+### 4. Wazuh Manager Won't Start - "Invalid element 'rule_id'"
 **Problem:** After editing `ossec.conf` to add active response configuration, `wazuh-manager` failed to start with a cryptic error about invalid configuration elements.
 
-**Root cause:** Used `<rule_id>` (singular) instead of `<rules_id>` (plural) in the active response block. Later discovered that `<rules_id>` is also not valid inside `<integration>` blocks for Wazuh 4.7.5 — the correct tag there is `<rule_id>`.
+**Root cause:** Used `<rule_id>` (singular) instead of `<rules_id>` (plural) in the active response block. Later discovered that `<rules_id>` is also not valid inside `<integration>` blocks for Wazuh 4.7.5 - the correct tag there is `<rule_id>`.
 
-**Solution:** The correct tag depends on context — `<rule_id>` for integration blocks, `<rules_id>` for active response blocks. Learned to always check `journalctl -xeu wazuh-manager.service` for the exact error before guessing.
+**Solution:** The correct tag depends on context - `<rule_id>` for integration blocks, `<rules_id>` for active response blocks. Learned to always check `journalctl -xeu wazuh-manager.service` for the exact error before guessing.
 
 ### 5. Active Response: "Cannot read 'srcip' from data"
 **Problem:** The Shuffle workflow would successfully send the active response command to Wazuh (200 OK), but the firewall-drop script on the agent would fail with "Cannot read 'srcip' from data."
 
 **Root cause:** The Wazuh active response API expects the IP to be in `alert.data.srcip`, not in the `arguments` array. The firewall-drop script specifically reads from that JSON path.
 
-**Solution:** Changed the Wazuh node body in Shuffle from `{"arguments": ["8.8.8.8"]}` to `{"alert": {"data": {"srcip": "8.8.8.8"}}}`. Also discovered a typo where `srcip` was accidentally typed as `scrip` — a single missing letter that took hours to find.
+**Solution:** Changed the Wazuh node body in Shuffle from `{"arguments": ["8.8.8.8"]}` to `{"alert": {"data": {"srcip": "8.8.8.8"}}}`. Also discovered a typo where `srcip` was accidentally typed as `scrip` - a single missing letter that took hours to find.
 
 ### 6. SHA256 Hash Extraction Failing in Shuffle
 **Problem:** The regex node in Shuffle would return `found: false` even though the alert clearly contained hash data.
 
 **Root cause:** Multiple issues stacked together:
-1. The input path was `$exec.all_fields.data.win.hashes` — missing `eventdata` in the path
+1. The input path was `$exec.all_fields.data.win.hashes`  missing `eventdata` in the path
 2. The workflow was triggering on Sysmon Event ID 10 alerts (process access) which don't contain file hashes — only Event ID 1 (process creation) has hashes
 3. Shuffle's dropdown menu doesn't show deeply nested fields, so the correct path had to be typed manually
 
@@ -435,21 +435,21 @@ Located at `/var/ossec/etc/rules/local_rules.xml`:
 
 ### Things that don't work perfectly yet:
 
-1. **VirusTotal hash lookup is inconsistent** — The regex extraction works and the hash is sent to VirusTotal, but the specific Mimikatz build used in testing may not be in VirusTotal's database, resulting in a 404. In a real environment with actual malware samples, this would return results.
+1. **VirusTotal hash lookup is inconsistent** - The regex extraction works and the hash is sent to VirusTotal, but the specific Mimikatz build used in testing may not be in VirusTotal's database, resulting in a 404. In a real environment with actual malware samples, this would return results.
 
-2. **Only two custom detection rules** — Real SOC environments have hundreds of detection rules covering different attack techniques. This lab only detects Mimikatz and brute force SSH, which is a narrow detection surface.
+2. **Only two custom detection rules** - Real SOC environments have hundreds of detection rules covering different attack techniques. This lab only detects Mimikatz and brute force SSH, which is a narrow detection surface.
 
-3. **Brute force simulation uses internal IPs** — The brute force test attacks from the Wazuh Manager (172.31.12.1) to the Ubuntu agent, which means the "attacker" IP is the SIEM itself. In production, the attacker would be an external IP with actual threat intelligence available.
+3. **Brute force simulation uses internal IPs** - The brute force test attacks from the Wazuh Manager (172.31.12.1) to the Ubuntu agent, which means the "attacker" IP is the SIEM itself. In production, the attacker would be an external IP with actual threat intelligence available.
 
-4. **No SSL certificate validation** — All internal API calls use `ssl_verify: false` or `-k` flag. Acceptable for a lab but not for production.
+4. **No SSL certificate validation** - All internal API calls use `ssl_verify: false` or `-k` flag. Acceptable for a lab but not for production.
 
-5. **Single point of failure** — If the Wazuh Manager instance goes down, all detection, alerting, and response stops. No redundancy or clustering.
+5. **Single point of failure** - If the Wazuh Manager instance goes down, all detection, alerting, and response stops. No redundancy or clustering.
 
-6. **Windows VM uses NAT networking** — The Windows endpoint connects through VirtualBox NAT, which means the agent's IP shows as 10.0.2.15. In a real deployment, you'd want bridged networking or a proper VPN.
+6. **Windows VM uses NAT networking** - The Windows endpoint connects through VirtualBox NAT, which means the agent's IP shows as 10.0.2.15. In a real deployment, you'd want bridged networking or a proper VPN.
 
-7. **No log retention policy** — Archives grow indefinitely with no rotation or lifecycle management configured.
+7. **No log retention policy** - Archives grow indefinitely with no rotation or lifecycle management configured.
 
-8. **TheHive alert deduplication** — Running the same attack multiple times creates duplicate alerts. The sourceRef field prevents exact duplicates but the same attack pattern generates unique alert IDs each time.
+8. **TheHive alert deduplication** - Running the same attack multiple times creates duplicate alerts. The sourceRef field prevents exact duplicates but the same attack pattern generates unique alert IDs each time.
 
 ---
 
@@ -495,7 +495,7 @@ Located at `/var/ossec/etc/rules/local_rules.xml`:
 ![TheHive Alert Detail](screenshots/thehive-alert-detail.png)
 ![Email Alert](screenshots/email-alert-mimikatz.png)
 
-### Workflow 2 — Brute Force IP Blocking
+### Workflow 2 - Brute Force IP Blocking
 ![Brute Force Terminal](screenshots/brute-force-terminal.png)
 ![Wazuh Brute Force Alert](screenshots/wazuh-bruteforce-alert.png)
 ![Shuffle Workflow 2](screenshots/workflow2-shuffle.png)
@@ -546,16 +546,16 @@ See [configs/active-response.xml](configs/active-response.xml)
 - Deploying and managing a distributed SIEM architecture across multiple cloud instances
 - Writing custom detection rules using PCRE2 regex and MITRE ATT&CK mapping
 - Building SOAR automation workflows that chain multiple security tools via APIs
-- Understanding the Wazuh active response mechanism — from API call to iptables rule
+- Understanding the Wazuh active response mechanism - from API call to iptables rule
 - Troubleshooting distributed systems where the error on one machine is caused by configuration on another
 
 **Soft skills:**
 - Debugging complex multi-component systems where a single typo (`scrip` vs `srcip`) can break an entire pipeline
-- Reading documentation when things don't work — Wazuh 4.7.5 changed several config tags from earlier versions
-- Persistence — this project had dozens of failures before each component worked correctly
+- Reading documentation when things don't work - Wazuh 4.7.5 changed several config tags from earlier versions
+- Persistence - this project had dozens of failures before each component worked correctly
 - Understanding that security tools are only as good as their configuration
 
-**Key insight:** The hardest part of building a SOC isn't installing the tools — it's making them talk to each other correctly. Every integration point (Wazuh → Shuffle, Shuffle → VirusTotal, Shuffle → TheHive, Shuffle → Wazuh API) has its own authentication, data format, and failure modes. Real SOC engineering is debugging those connections.
+**Key insight:** The hardest part of building a SOC isn't installing the tools - it's making them talk to each other correctly. Every integration point (Wazuh → Shuffle, Shuffle → VirusTotal, Shuffle -> TheHive, Shuffle → Wazuh API) has its own authentication, data format, and failure modes. Real SOC engineering is debugging those connections.
 
 ---
 
@@ -563,7 +563,7 @@ See [configs/active-response.xml](configs/active-response.xml)
 
 **Ashwij Shenoy Bantwal**
 
-Master of Cybersecurity — RMIT University, Melbourne
+Master of Cybersecurity - RMIT University, Melbourne
 
 - 🔗 [LinkedIn](https://www.linkedin.com/in/ashwij-shenoy-bantwal)
 - 📧 ashwij2142@gmail.com
