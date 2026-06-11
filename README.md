@@ -3,8 +3,8 @@
 ## 📋 Table of Contents
 - [Overview](#overview)
 - [Architecture](#architecture)
-- [Workflow 1 — Mimikatz Detection & Alert Pipeline](#workflow-1--mimikatz-detection--alert-pipeline)
-- [Workflow 2 — Brute Force Detection & IP Blocking](#workflow-2--brute-force-detection--ip-blocking)
+- [Workflow 1 - Mimikatz Detection & Alert Pipeline](#workflow-1---mimikatz-detection--alert-pipeline)
+- [Workflow 2 - Brute Force Detection & IP Blocking](#workflow-2---brute-force-detection--ip-blocking)
 - [AWS Infrastructure](#aws-infrastructure)
 - [Component Deep Dive](#component-deep-dive)
 - [Custom Detection Rules](#custom-detection-rules)
@@ -80,9 +80,6 @@ A fully automated Security Operations Centre (SOC) lab built on AWS from scratch
 └──────────────────┘        └──────────────────┘
 ```
 
-> 📸 *See [screenshots/architecture-diagram.png](screenshots/architecture-diagram.png) for the visual diagram*
-
----
 
 ## Workflow 1 - Mimikatz Detection & Alert Pipeline
 
@@ -147,10 +144,6 @@ Windows VM                    Wazuh Manager                 Shuffle SOAR
   "type": "intern"
 }
 ```
-
-> 📸 *See [screenshots/workflow1-shuffle.png](screenshots/workflow1-shuffle.png) and [screenshots/thehive-alert.png](screenshots/thehive-alert.png)*
-
----
 
 ## Workflow 2 - Brute Force Detection & IP Blocking
 
@@ -222,10 +215,6 @@ sudo iptables -L INPUT -n
 # After 180 seconds, auto-unblock occurs
 # Wazuh logs: "Host Unblocked by firewall-drop Active Response"
 ```
-
-> 📸 *See [screenshots/workflow2-shuffle.png](screenshots/workflow2-shuffle.png) and [screenshots/iptables-blocked.png](screenshots/iptables-blocked.png)*
-
----
 
 ## AWS Infrastructure
 
@@ -480,33 +469,127 @@ Located at `/var/ossec/etc/rules/local_rules.xml`:
 
 ## Screenshots
 
-### Architecture
-![Architecture Diagram](screenshots/architecture-diagram.png)
+### Architecture 
+--
+<img width="1519" height="1587" alt="13 drawio" src="https://github.com/user-attachments/assets/ab83bc25-8610-4422-8dba-0f1338792a22" />
+
 
 ### AWS Infrastructure
-![EC2 Dashboard](screenshots/aws-ec2-dashboard.png)
+--
+
+<img width="1917" height="536" alt="AWS_Instances" src="https://github.com/user-attachments/assets/08df6d3b-95f5-42ef-b4e2-be412a12aa46" />
+
 
 ### Workflow 1 — Mimikatz Detection
-![Wazuh Mimikatz Alert](screenshots/wazuh-mimikatz-alert.png)
-![Shuffle Workflow 1](screenshots/workflow1-shuffle.png)
-![Shuffle Execution](screenshots/workflow1-execution.png)
-![SHA256 Hash Extraction](screenshots/hash-extraction.png)
-![TheHive Alerts](screenshots/thehive-alerts.png)
-![TheHive Alert Detail](screenshots/thehive-alert-detail.png)
-![Email Alert](screenshots/email-alert-mimikatz.png)
+
+# Sysmon Event
+--
+<img width="1917" height="992" alt="Sysmon_event" src="https://github.com/user-attachments/assets/d05b776e-bc71-4773-815e-1d47c4fdf959" />
+
+
+# Mimikatz Execution 
+--
+<img width="1072" height="330" alt="MIMIkatz" src="https://github.com/user-attachments/assets/ab0459fb-71cb-4686-98bd-5809b1b2a015" />
+
+
+# Shuffle Workflow 1
+--
+<img width="1139" height="816" alt="hive_workflow"  src="https://github.com/user-attachments/assets/b5d4106a-e02c-407f-8194-21241ff33243" />
+
+
+# Shuffle Execution
+--
+<img width="487" height="815" alt="stitich1" src="https://github.com/user-attachments/assets/dfc7c51a-688d-419e-ae61-31c966622c4a" />
+
+
+# SHA256 Hash Extraction
+--
+<img width="490" height="475" alt="stitch2" src="https://github.com/user-attachments/assets/e35ce81a-bd0c-4f4d-a3aa-db586e325282" />
+
+ <img width="1441" height="747" alt="stitch3" src="https://github.com/user-attachments/assets/2fbfba20-93cf-4cf4-8e8a-1382ba20cf02" />
+
+<img width="1412" height="772" alt="Stitch4" src="https://github.com/user-attachments/assets/0236cb4c-de8c-4719-89f3-5ee66d5d1ab9" />
+
+
+# Email Alert
+--
+<img width="1912" height="680" alt="email_ss" src="https://github.com/user-attachments/assets/1bc82de9-53cc-4f77-a704-9e51ad11fe8e" />
+
+
+# The Hive Dashboard 
+--
+<img width="1912" height="825" alt="hive_dashboard_before" src="https://github.com/user-attachments/assets/fb4d4f4e-3658-4030-92de-b5f42ab193cf" />
+
+
+# The hive Alert
+--
+<img width="1907" height="935" alt="hive_dashboard" src="https://github.com/user-attachments/assets/72ca51bb-84da-49d5-bd71-da14b77b7dbf" />
+
+
+# Wazuh Dashboard 
+--
+<img width="1917" height="995" alt="Wazuh-Dashboard" src="https://github.com/user-attachments/assets/9fd20f7c-1b0c-411f-bf53-61e8b710f688" />
+
+
+# Wazuh Alert
+--
+<img width="1917" height="992" alt="Mimikatz_alerts wazuh_dashboard" src="https://github.com/user-attachments/assets/6f451bee-9e2b-435b-9f72-056a4958675e" />
+
+
+
 
 ### Workflow 2 - Brute Force IP Blocking
-![Brute Force Terminal](screenshots/brute-force-terminal.png)
-![Wazuh Brute Force Alert](screenshots/wazuh-bruteforce-alert.png)
-![Shuffle Workflow 2](screenshots/workflow2-shuffle.png)
-![Shuffle Execution](screenshots/workflow2-execution.png)
-![Email Block IP](screenshots/email-block-ip.png)
-![iptables Blocked](screenshots/iptables-blocked.png)
-![Active Response Log](screenshots/active-response-log.png)
+# Brute Force Terminal
+--
+<img width="925" height="150" alt="bruteforce command" src="https://github.com/user-attachments/assets/b2ce1e09-0991-4057-aa91-7bac3181ef38" />
 
-### Sysmon & Endpoint
-![Sysmon Event Viewer](screenshots/sysmon-events.png)
-![Windows Agent Connected](screenshots/wazuh-agent-windows.png)
+
+# Wazuh Brute Force Alert 
+--
+<img width="632" height="811" alt="wazuh_alert" src="https://github.com/user-attachments/assets/eff5151e-ad3d-4538-854d-2f7987d86c49" />
+
+
+# Shuffle Workflow 2
+--
+<img width="1901" height="802" alt="workflow" src="https://github.com/user-attachments/assets/3fb35958-7023-415e-bc3a-1ee78e9ff0c4" />
+
+
+# Shuffle Execution
+--
+<img width="482" height="731" alt="stitch1" src="https://github.com/user-attachments/assets/9065224f-741f-4708-b40e-bbf02350e2e3" />
+
+<img width="1429" height="802" alt="stitich2" src="https://github.com/user-attachments/assets/593874c3-9a2b-4a89-9198-9d2b19108aeb" />
+
+<img width="1415" height="804" alt="stitch3" src="https://github.com/user-attachments/assets/84a6326e-9d98-4162-a194-762704c0afb4" />
+
+<img width="1421" height="847" alt="stitch4" src="https://github.com/user-attachments/assets/cd9eaabe-d47d-4dcb-896f-ee5a03134ce4" />
+
+
+# Alert Email 
+--
+<img width="1591" height="644" alt="mail_userinput" src="https://github.com/user-attachments/assets/0e7334dc-21b1-46fd-8688-5cf02319bb84" />
+
+
+# Block IP
+--
+<img width="1689" height="404" alt="userinupt" src="https://github.com/user-attachments/assets/161403a5-d63a-4ed3-aeb6-f7cc768b394b" />
+
+
+# iptables Blocked 
+--
+<img width="710" height="261" alt="ip_table_blocked" src="https://github.com/user-attachments/assets/a1a7768c-1f1e-4f97-a872-f5ed13d3f51b" />
+
+<img width="727" height="326" alt="tbleblock" src="https://github.com/user-attachments/assets/6cc9da74-875a-44ec-b264-f44ea229b406" />
+
+
+ # Active Response Log
+--
+<img width="677" height="341" alt="logs" src="https://github.com/user-attachments/assets/020df949-bd82-4593-a2d9-6d1afd024e64" />
+
+### Sysmon 
+# Sysmon Event Viewer
+--
+<img width="1917" height="992" alt="Sysmon_event" src="https://github.com/user-attachments/assets/3d316fca-6216-4b3c-9470-beee2edf0b15" />
 
 ---
 
