@@ -1,0 +1,28 @@
+<!--  Local rules  -->
+<!--  SOC Automation Lab - Custom Detection Rules  -->
+<!--  Author: Ashwij Shenoy Bantwal  -->
+<group name="local,syslog,sshd,">
+<!--  Mimikatz Process Access Detection (Sysmon Event ID 10)  -->
+<!--  Triggers when any process accesses Mimikatz  -->
+<!--  Does NOT contain file hashes - use rule 100003 for hash-based workflows  -->
+<rule id="100002" level="15">
+<if_group>sysmon_event10</if_group>
+<field name="win.eventdata.targetImage" type="pcre2">(?i)mimikatz\.exe</field>
+<description>Mimikatz Usage Detected - Process Access</description>
+<mitre>
+<id>T1003</id>
+</mitre>
+</rule>
+<!--  Mimikatz Process Creation Detection (Sysmon Event ID 1)  -->
+<!--  Triggers when Mimikatz is executed  -->
+<!--  Contains file hashes (SHA1, MD5, SHA256, IMPHASH) for threat intel enrichment  -->
+<rule id="100003" level="15">
+<if_group>sysmon_event1</if_group>
+<field name="win.eventdata.image" type="pcre2">(?i)mimikatz\.exe</field>
+<description>Mimikatz Execution Detected - Process Created</description>
+<group>windows,sysmon,credential_access,</group>
+<mitre>
+<id>T1003</id>
+</mitre>
+</rule>
+</group>
