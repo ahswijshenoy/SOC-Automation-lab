@@ -1,0 +1,21 @@
+<!-- Shuffle SOAR Integrations -->
+<!-- Add these inside the <ossec_config> block in /var/ossec/etc/ossec.conf -->
+ 
+<!-- Workflow 1: Mimikatz Detection → Hash Enrichment → TheHive Case -->
+<!-- Only triggers on custom rule 100003 (Mimikatz process creation) -->
+<integration>
+  <name>shuffle</name>
+  <hook_url>https://shuffler.io/api/v1/hooks/webhook_[YOUR_WORKFLOW1_WEBHOOK_ID]</hook_url>
+  <rule_id>100003</rule_id>
+  <alert_format>json</alert_format>
+</integration>
+ 
+<!-- Workflow 2: Brute Force Detection → Email Approval → IP Block -->
+<!-- Only triggers on built-in rule 5712 (SSH brute force) -->
+<integration>
+  <name>shuffle</name>
+  <hook_url>https://shuffler.io/api/v1/hooks/webhook_[YOUR_WORKFLOW2_WEBHOOK_ID]</hook_url>
+  <rule_id>5712</rule_id>
+  <alert_format>json</alert_format>
+</integration>
+ 
