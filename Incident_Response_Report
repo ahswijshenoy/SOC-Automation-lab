@@ -1,0 +1,195 @@
+Technical Incident Response Report
+Mimikatz Credential Dumping Detection
+SOC Automation Lab
+Date	29 May 2026
+Prepared By	Ashwij Shenoy Bantwal
+Department	Security Operations
+Incident Name	Mimikatz Credential Dumping
+Incident Number	SOC-LAB-2026-001
+Classification	High
+ 
+1. Purpose
+This report documents the detection, investigation, containment, and response to a credential dumping incident involving the execution of Mimikatz on a Windows 10 endpoint within the SOC Automation Lab environment. The report covers all phases of incident response including detection, analysis, containment, eradication, recovery, and lessons learned.
+
+2. Incident Summary
+On 29 May 2026 at 04:22:28 UTC, the Wazuh SIEM detected the execution of Mimikatz, a well-known credential dumping tool, on the Windows 10 endpoint DESKTOP-VSFH4PP. The detection was triggered by Sysmon Event ID 1 (Process Creation), which was analysed by a custom Wazuh rule (ID 100003, Level 15) mapped to MITRE ATT&CK technique T1003 (OS Credential Dumping).
+The attack path was as follows: the user opened PowerShell, navigated to the Mimikatz directory, and executed mimikatz.exe directly. The tool was not renamed or obfuscated, indicating either a low-sophistication attack or a testing scenario.
+The SOAR platform (Shuffle) automatically processed the alert within seconds, extracting the file hash, querying VirusTotal for threat intelligence, creating a case in TheHive, and notifying the SOC analyst via email. No manual intervention was required for initial triage.
+
+Detection Method
+•	Sysmon Event ID 1 captured process creation with full metadata including file hashes, command line, parent process, and user context
+•	Wazuh custom rule 100003 matched on the image path containing mimikatz.exe using PCRE2 regex
+•	Alert classified as Level 15 (highest severity) with MITRE ATT&CK mapping to T1003
+•	Automated SOAR workflow triggered via webhook integration within 1 second of detection
+
+Business Impact
+If this were a production environment, the execution of Mimikatz could lead to the extraction of plaintext passwords, NTLM hashes, and Kerberos tickets from memory. This would enable lateral movement across the network, privilege escalation, and potential domain compromise. In this lab environment, the impact was contained to the single test endpoint.
+
+3. Information Exposure
+Mimikatz is designed to extract credentials from Windows memory (LSASS process). If the tool was run with sufficient privileges, the following information could have been exposed:
+•	Plaintext passwords for logged-in users
+•	NTLM password hashes
+•	Kerberos tickets (TGT and service tickets)
+•	WDigest credentials if enabled
+•	Cached domain credentials
+
+In this lab scenario, the endpoint was a standalone Windows 10 machine not joined to a domain. Exposure was limited to the local user account (DESKTOP-VSFH4PP\ash).
+
+4. Investigative Findings
+
+4.1 Incident Timeline
+
+Date & Time (UTC)	Detection Source & Description
+29/05/2026 04:22:28	Sysmon: Process creation detected. mimikatz.exe executed by user ash via PowerShell on DESKTOP-VSFH4PP.
+29/05/2026 04:22:28	Sysmon: File hashes captured. SHA256: 61C0810A23580CF492A6BA4F7654566108331E7A4134C968C2D6A05261B2D8A1
+29/05/2026 04:22:29	Wazuh: Custom rule 100003 fired. Level 15 alert generated. MITRE ATT&CK T1003 mapped.
+29/05/2026 04:22:29	Shuffle SOAR: Webhook received. Automated workflow initiated.
+29/05/2026 04:22:30	Shuffle: SHA256 hash extracted from Sysmon event data using regex.
+29/05/2026 04:22:31	VirusTotal: Hash submitted for reputation analysis via API v3.
+29/05/2026 04:22:32	TheHive: Alert created with Severity High, TLP Amber, tags T1003.
+29/05/2026 04:22:32	Email: SOC analyst notification sent with full alert context.
+
+4.2 Incident Analysis - Malware Artifacts
+Name	Location/File Path	SHA256 Hash	User	MITRE Technique
+mimikatz.exe	C:\Users\ash\Downloads\mimikatz_trunk\x64\mimikatz.exe	61C0810A...08331E7A	DESKTOP-VSFH4PP\ash	T1003
+
+4.3 Additional Indicators of Compromise
+
+IOC Type	Value
+SHA256	61C0810A23580CF492A6BA4F7654566108331E7A4134C968C2D6A05261B2D8A1
+MD5	29EFD64DD3C7FE1E2B022B7AD73A1BA5
+SHA1	E3B6EA8C46FA831CEC6F235A5CF48B38A4AE8D69
+IMPHASH	55EE500BB4BDFC49F27A98AE456D8EDF
+File Description	mimikatz for Windows (gentilkiwi / Benjamin DELPY)
+File Version	2.2.0.0
+Parent Process	C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
+Command Line	"C:\Users\ash\Downloads\mimikatz_trunk\x64\mimikatz.exe"
+Process ID	3696
+Wazuh Rule ID	100003 (Level 15)
+MITRE ATT&CK	T1003 - OS Credential Dumping (Credential Access)
+
+4.4 Extent of Compromise
+
+Server/Host	IP Address	Purpose	User Account	Status	Comments
+DESKTOP-VSFH4PP	10.0.2.15	Windows Endpoint	ash	Compromised	Mimikatz executed
+ip-172-31-12-1	172.31.12.1	Wazuh Manager	N/A	Clean	Detection only
+ip-172-31-24-142	172.31.24.142	Ubuntu Agent	N/A	Clean	No lateral movement
+
+5. Containment
+
+The following containment actions were taken to limit the damage and prevent further compromise:
+•	Automated alert escalation via Shuffle SOAR notified the SOC analyst within seconds of detection
+•	TheHive case created with full context enabling immediate investigation without additional log searching
+•	File hash IOCs extracted and recorded for future blocking and detection
+•	In a production environment, the recommended immediate containment action would be to isolate the endpoint from the network using EDR or by disabling the network adapter
+•	In a production environment, the user account (ash) should be disabled and password reset forced for all accounts that were logged into the compromised endpoint
+The automated SOAR workflow reduced the mean time to detect (MTTD) to under 2 seconds and mean time to notify (MTTN) to under 5 seconds, which in a real environment would significantly reduce the window of opportunity for an attacker to move laterally.
+
+6. Preservation of Evidence
+•	Wazuh archive logging was enabled (logall and logall_json set to yes), preserving the complete raw event data in /var/ossec/logs/archives/
+•	Sysmon Event ID 1 captured the full process creation metadata including hashes, command line arguments, parent process tree, and user context
+•	TheHive case preserved the alert with all associated observables, timestamps, and MITRE ATT&CK mappings
+•	Shuffle execution history retained the complete workflow execution including API call results from VirusTotal
+•	In a production environment, a forensic disk image of the compromised endpoint should be taken before any remediation actions
+•	All evidence was timestamped in UTC for consistency across distributed systems
+
+7. Eradication
+
+Point of Entry
+
+The point of entry was direct execution by the local user via PowerShell. The user navigated to the download directory containing Mimikatz and executed it manually. There was no evidence of remote delivery, phishing, or exploitation of a vulnerability to deliver the tool.
+Eradication Steps
+•	Remove the Mimikatz binary and the entire mimikatz_trunk directory from the endpoint
+•	Scan the endpoint with an updated antivirus/EDR solution to identify any additional malicious files or persistence mechanisms
+•	Check for scheduled tasks, registry run keys, and services that may have been created for persistence
+•	Review Windows Event Logs for any additional suspicious activity during the time Mimikatz was running
+•	Check if credential dumping was successful by reviewing LSASS access events (Sysmon Event ID 10)
+
+Hardening Recommendations
+
+•	Enable Windows Credential Guard to protect LSASS memory from credential dumping tools
+•	Implement application whitelisting to prevent execution of unauthorised tools
+•	Restrict PowerShell execution to signed scripts only using Constrained Language Mode
+•	Block known Mimikatz file hashes at the endpoint protection level
+•	Implement LSASS protection (RunAsPPL) to prevent direct memory access
+•	Disable WDigest authentication to prevent plaintext password storage in memory
+
+Ongoing Monitoring
+
+The Wazuh SIEM will continue to monitor for Mimikatz execution via custom rules 100002 (Event ID 10 - Process Access) and 100003 (Event ID 1 - Process Creation). Additional detection rules should be created for renamed or obfuscated versions of the tool, as well as for other credential dumping utilities such as ProcDump, LaZagne, and secretsdump.py.
+
+8. Recovery
+
+Recovery steps to restore the endpoint to a known good state:
+•	Verify the Mimikatz binary has been fully removed from the system
+•	Force password reset for all user accounts that were active on the compromised endpoint
+•	If domain-joined, reset the Kerberos TGT (krbtgt) account password twice to invalidate any stolen tickets
+•	Verify that no persistence mechanisms were established by checking startup items, scheduled tasks, and registry entries
+•	Confirm the Wazuh agent is active and reporting events correctly
+•	Monitor the endpoint for 48 to 72 hours post-remediation for any signs of reinfection or additional compromise
+•	Verify all detection rules are active and triggering correctly through controlled testing
+
+9. Lessons Learned
+
+What Worked Well
+•	Detection was near-instantaneous. The custom Wazuh rule fired within 1 second of Mimikatz execution.
+•	The automated SOAR workflow eliminated manual triage steps, reducing analyst workload significantly.
+•	MITRE ATT&CK mapping on the alert provided immediate context about the attack technique and tactic.
+•	TheHive case creation with full event context meant the analyst could begin investigation immediately without searching through raw logs.
+•	Email notification ensured the analyst was aware of the incident even when not actively monitoring the dashboard.
+
+What Could Be Improved
+•	The detection only catches Mimikatz by filename. A renamed binary (e.g., mimi.exe or svc.exe) would bypass the current rule. Detection should also include hash-based matching and behavioural indicators such as LSASS access patterns.
+•	No automated containment was triggered for this alert type. In a production environment, high-severity credential dumping alerts should trigger automatic endpoint isolation.
+•	VirusTotal hash lookup was inconsistent due to the specific Mimikatz build not being in the VT database. Multiple threat intelligence sources should be queried for redundancy.
+•	The workflow triggered on all level 10+ alerts initially, causing false positives from benign processes like OneDrive (rule 92910). Proper rule tuning and workflow filtering is essential.
+•	No playbook existed for credential dumping incidents. A formal playbook with step-by-step investigation and containment procedures should be developed.
+
+Recommendations
+•	Develop additional detection rules for credential dumping that focus on behaviour rather than filenames (LSASS access patterns, memory dumping tools, Kerberos ticket manipulation).
+•	Implement automated endpoint isolation for Level 15 alerts as part of the SOAR workflow.
+•	Create formal incident response playbooks for the top 5 attack types: credential dumping, ransomware, phishing, brute force, and lateral movement.
+•	Add network segmentation to limit the blast radius of a compromised endpoint.
+•	Integrate additional threat intelligence feeds beyond VirusTotal (AbuseIPDB, AlienVault OTX, MISP).
+•	Conduct regular purple team exercises to validate detection coverage and response procedures.
+ 
+10. Appendix
+
+Appendix A - Wazuh Custom Detection Rule
+<rule id="100003" level="15">
+  <if_group>sysmon_event1</if_group>
+  <field name="win.eventdata.image" type="pcre2">(?i)mimikatz\.exe</field>
+  <description>Mimikatz Execution Detected - Process Created</description>
+  <group>windows,sysmon,credential_access,</group>
+  <mitre><id>T1003</id></mitre>
+</rule>
+
+Appendix B - Version History
+
+Date	Name	Version	Comments
+29/05/2026	Ashwij Shenoy Bantwal	1.0	Initial report
+
+Template Source
+This report follows the Technical Incident Response Report template published by Cyber Alberta (cyberalberta.ca). The original template can be found at: https://cyberalberta.ca/system/files/technical-incident-response-report-template.pdf
+This is a generic template. Every organisation adapts their IR reports to their own needs, compliance requirements, and internal processes. The structure and depth of reporting varies widely across industries.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+This report was written with the assistance of AI tools for structuring and language. The technical findings, investigation data, and analysis are based on the author's own work in the SOC Automation Lab environment.
